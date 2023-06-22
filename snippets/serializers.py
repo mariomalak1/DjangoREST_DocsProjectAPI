@@ -38,3 +38,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'snippets']
+
+
+class AllUsers(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = '__all__'
