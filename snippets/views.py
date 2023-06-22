@@ -5,13 +5,21 @@ from snippets.models import Snippet
 from snippets.serializers import SnippetSerializer, UserSnippetSerializer
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, APIView
+from rest_framework.decorators import api_view, APIView, permission_classes
 from rest_framework import mixins
 from rest_framework import generics
 from django.contrib.auth.models import User
 
+## we want to create is athuenticated or read only function that is my decorator
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
+# {
+#         "title": "",
+#         "code": "\"print(\"mariooo\")\""
+# }
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def snippet(request, format=None):
     if request.method == "GET":
         data = Snippet.objects.all()
@@ -20,9 +28,7 @@ def snippet(request, format=None):
 
     elif request.method == 'POST':
         serializer = SnippetSerializer(data=request.data)
-        print(request.user)
         serializer.owner = request.user
-        print(serializer.is_valid())
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -30,6 +36,7 @@ def snippet(request, format=None):
 
 
 @api_view(["GET", "PUT", "DELETE"])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def snippet_detials(request, snippet_id, format=None):
     snippet_ = get_object_or_404(Snippet, id=snippet_id)
 
