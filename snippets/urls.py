@@ -5,6 +5,9 @@ urlpatterns = [
     path('snippets/', views.snippet),
     path('snippets/<int:snippet_id>/', views.snippet_detials),
 
+    path('users/', views.users),
+    path('users/<int:user_id>/', views.user_detail),
+
 
     path('snippets_class/', views.Snippets.as_view()),
     path('snippets_class/<int:pk>/', views.Snippets_Detials.as_view()),

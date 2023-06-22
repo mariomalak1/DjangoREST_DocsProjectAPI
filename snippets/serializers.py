@@ -16,7 +16,7 @@ class SnippetSerializer(serializers.Serializer):
         """
         Create and return a new `Snippet` instance, given the validated data.
         """
-        return Snippet.objects.create(**validated_data)
+        return Snippet.objects.create(**validated_data, owner=self.owner)
 
     def update(self, instance, validated_data):
         """
@@ -32,15 +32,9 @@ class SnippetSerializer(serializers.Serializer):
 
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSnippetSerializer(serializers.ModelSerializer):
+    ## PrimaryKeyRelatedField --> mean that he will make query to get all things owned by this model (User) by his primay key
     snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
-
     class Meta:
         model = User
         fields = ['id', 'username', 'snippets']
-
-
-class AllUsers(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = '__all__'

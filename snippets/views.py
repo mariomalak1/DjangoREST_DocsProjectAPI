@@ -2,12 +2,14 @@ from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
 from snippets.models import Snippet
-from snippets.serializers import SnippetSerializer
+from snippets.serializers import SnippetSerializer, UserSnippetSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, APIView
 from rest_framework import mixins
 from rest_framework import generics
+from django.contrib.auth.models import User
+
 
 @api_view(["GET", "POST"])
 def snippet(request, format=None):
@@ -18,6 +20,9 @@ def snippet(request, format=None):
 
     elif request.method == 'POST':
         serializer = SnippetSerializer(data=request.data)
+        print(request.user)
+        serializer.owner = request.user
+        print(serializer.is_valid())
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -43,6 +48,44 @@ def snippet_detials(request, snippet_id, format=None):
         snippet_.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+
+@api_view(['POST', "GET"])
+def users(request):
+    if request.method == "GET":
+        serializer = UserSnippetSerializer(User.objects.all(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == "POST":
+        serializer = UserSnippetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['PUT', "GET", "DELETE"])
+def user_detail(request, user_id):
+    user = get_object_or_404(User, id = user_id)
+
+    if request.method == "GET":
+        serializer = UserSnippetSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == "PUT":
+        serializer = UserSnippetSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "DELETE":
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+### CBV #############################################
 class Snippets(APIView):
     def get(self, request, format=None):
         snippets = Snippet.objects.all()
@@ -55,6 +98,7 @@ class Snippets(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class Snippets_Detials(APIView):
     def get(self, request, pk, format=None):
@@ -87,6 +131,11 @@ class Snippets_Mixin(mixins.ListModelMixin, mixins.CreateModelMixin, generics.Ge
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
 
+    ## in Mixin
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
 
 class Snippets_Mixin_details(mixins.UpdateModelMixin,
                              mixins.DestroyModelMixin,
@@ -108,10 +157,10 @@ class Snippets_Generic(generics.ListCreateAPIView):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
 
+
 class Snippets_Generic_Detials(generics.RetrieveUpdateDestroyAPIView):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
-    
 
 
 
