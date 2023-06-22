@@ -1,22 +1,18 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from rest_framework.parsers import JSONParser
-from snippets.models import Snippet
-from snippets.serializers import SnippetSerializer, UserSnippetSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, APIView, permission_classes
 from rest_framework import mixins
 from rest_framework import generics
 from django.contrib.auth.models import User
-
-## we want to create is athuenticated or read only function that is my decorator
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-# {
-#         "title": "",
-#         "code": "\"print(\"mariooo\")\""
-# }
+from snippets.serializers import SnippetSerializer, UserSnippetSerializer
+from snippets.models import Snippet
+from snippets.permisions import IsOwnerOfSnippetOrReadOnly, IsSameUserOrReadOnly
+
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticatedOrReadOnly])
@@ -36,10 +32,9 @@ def snippet(request, format=None):
 
 
 @api_view(["GET", "PUT", "DELETE"])
-@permission_classes([IsAuthenticatedOrReadOnly])
+@permission_classes([IsAuthenticatedOrReadOnly, IsOwnerOfSnippetOrReadOnly])
 def snippet_detials(request, snippet_id, format=None):
     snippet_ = get_object_or_404(Snippet, id=snippet_id)
-
     if request.method == "GET":
         serializer = SnippetSerializer(snippet_)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -72,6 +67,7 @@ def users(request):
 
 
 @api_view(['PUT', "GET", "DELETE"])
+@permission_classes([IsSameUserOrReadOnly])
 def user_detail(request, user_id):
     user = get_object_or_404(User, id = user_id)
 

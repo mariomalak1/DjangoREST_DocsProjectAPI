@@ -1,3 +1,3 @@
-- Only authenticated users may create snippets.
-- Only the creator of a snippet may update or delete it.
-- Unauthenticated requests should have full read-only access.
+- Only the creator of a snippet may update or delete it. -- done --
+- Unauthenticated requests should have full read-only access. -- done --
+- Only authenticated users may create snippets. -- done --
