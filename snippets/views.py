@@ -104,4 +104,14 @@ class Snippets_Mixin_details(mixins.UpdateModelMixin,
         return self.destroy(request, *args, **kwargs)
 
 
+class Snippets_Generic(generics.ListCreateAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+
+class Snippets_Generic_Detials(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+    
+
+
 

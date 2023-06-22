@@ -12,6 +12,9 @@ urlpatterns = [
     path('snippets_mixin/', views.Snippets_Mixin.as_view()),
     path('snippets_mixin/<int:pk>/', views.Snippets_Mixin_details.as_view()),
 
+
+    path('snippets_generic/', views.Snippets_Generic.as_view()),
+    path('snippets_generic/<int:pk>/', views.Snippets_Generic_Detials.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
