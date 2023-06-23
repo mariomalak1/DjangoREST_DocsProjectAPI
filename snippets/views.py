@@ -8,7 +8,8 @@ from rest_framework import mixins
 from rest_framework import generics
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-
+from rest_framework.reverse import reverse
+from rest_framework import renderers
 from snippets.serializers import SnippetSerializer, UserSnippetSerializer
 from snippets.models import Snippet
 from snippets.permisions import IsOwnerOfSnippetOrReadOnly, IsSameUserOrReadOnly
@@ -19,11 +20,11 @@ from snippets.permisions import IsOwnerOfSnippetOrReadOnly, IsSameUserOrReadOnly
 def snippet(request, format=None):
     if request.method == "GET":
         data = Snippet.objects.all()
-        serializer = SnippetSerializer(data, many=True)
+        serializer = SnippetSerializer(data, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
-        serializer = SnippetSerializer(data=request.data)
+        serializer = SnippetSerializer(data=request.data, context={'request': request})
         serializer.owner = request.user
         if serializer.is_valid():
             serializer.save()
@@ -86,6 +87,22 @@ def user_detail(request, user_id):
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+@api_view(["GET"])
+def api_root(request, format=None):
+    return Response({
+        "users": reverse("user-list", request=request, format=format),
+        "snippets": reverse("snippet-list", request=request, format=format),
+    })
+
+
+class snippetHighLight(generics.GenericAPIView):
+    queryset = Snippet.objects.all()
+    renderer_classes = [renderers.StaticHTMLRenderer]
+
+    def get(self, request, *args, **kwargs):
+        snippet_ = self.get_object()
+        return Response(snippet_.highlight)
 
 
 ### CBV #############################################
